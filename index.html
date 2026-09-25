@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Le Ferriere Race</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
+<meta name="application-name" content="Le Ferriere Race">
+<meta name="apple-mobile-web-app-title" content="Le Ferriere Race">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9F0EE; --surface:#FFFFFF; --ink:#0E2A30; --muted:#5B7775; --line:#C9D8D5;
+  --accent:#16876C; --accent-ink:#FFFFFF; --warn:#B7791F; --bad:#C53030;
+  --tap:#0E2A30; --tap-ink:#8BE3C8;
+  --num:"Barlow Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --txt:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#161616; --ink:#EDEDED; --muted:#9A9A9A; --line:#333333;
+    --accent:#7FD1B9; --accent-ink:#000000; --warn:#F5B642; --bad:#F26B6B;
+    --tap:#7FD1B9; --tap-ink:#000000;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#161616; --ink:#EDEDED; --muted:#9A9A9A; --line:#333333;
+  --accent:#7FD1B9; --accent-ink:#000000; --warn:#F5B642; --bad:#F26B6B;
+  --tap:#7FD1B9; --tap-ink:#000000;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+html{background:#000}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--txt);font-size:17px;line-height:1.4;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.view{display:none;height:100%;flex-direction:column}
+.view.on{display:flex}
+.wrap{max-width:640px;width:100%;margin:0 auto;padding:16px}
+.scroll{flex:1;overflow-y:auto}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;padding:14px 16px 6px;max-width:640px;width:100%;margin:0 auto}
+.top h1{font-family:var(--num);font-weight:700;font-size:34px;letter-spacing:.01em;margin:0;flex:1;line-height:1}
+.top h1 small{display:block;font-family:var(--txt);font-weight:500;font-size:14px;color:var(--muted);letter-spacing:0;margin-top:4px}
+.icon{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-size:20px;display:grid;place-items:center}
+
+/* PA list */
+.pa{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1.5px solid var(--line)}
+.pa:first-child{border-top:1.5px solid var(--line)}
+.pa .n{font-family:var(--num);font-weight:700;font-size:40px;min-width:74px;line-height:1}
+.pa .d{flex:1;min-width:0}
+.pa .d b{display:block;font-weight:600}
+.pa .d span{color:var(--muted);font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pa .edit{background:none;border:0;color:var(--muted);padding:10px;font-size:15px;text-decoration:underline}
+.go{background:var(--accent);color:var(--accent-ink);border:0;border-radius:28px;padding:12px 20px;font-weight:600;font-size:17px}
+.add{width:100%;margin-top:18px;padding:16px;border-radius:14px;border:2px dashed var(--line);background:none;font-weight:600;color:var(--ink)}
+.empty{color:var(--muted);padding:24px 0}
+
+/* forms */
+label.f{display:block;margin:16px 0 6px;font-weight:600}
+.hint{color:var(--muted);font-size:14px;margin-top:4px}
+input[type=text],input[type=number],textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:18px}
+textarea{min-height:110px;font-family:var(--num);font-size:22px;resize:vertical}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;padding:12px 8px;border:0;background:none;font-weight:600}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.row{display:flex;gap:10px;margin-top:24px}
+.row > *{flex:1}
+.btn{padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-weight:600}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.del{color:var(--bad);border-color:var(--bad);background:none}
+.err{color:var(--bad);font-weight:600;margin-top:8px;min-height:1.2em}
+
+/* run */
+#run{height:100%}
+.rhead{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.rhead .t{flex:1;min-width:0}
+.rhead .t b{font-family:var(--num);font-size:28px;font-weight:700;line-height:1;display:block}
+.rhead .t span{color:var(--muted);font-size:15px}
+.close{border:1.5px solid var(--line);background:var(--surface);border-radius:22px;padding:8px 14px;font-weight:600}
+.dial{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 12px;min-height:0;text-align:center}
+.big{font-family:var(--num);font-weight:700;font-variant-numeric:tabular-nums;font-size:clamp(84px,30vw,200px);line-height:.9;letter-spacing:-.01em}
+.big.ok{color:var(--accent)} .big.warn{color:var(--warn)} .big.bad{color:var(--bad)}
+.cap{font-size:17px;color:var(--muted);margin-top:8px}
+.meta{display:flex;gap:28px;justify-content:center;margin-top:14px;font-variant-numeric:tabular-nums}
+.meta div{text-align:center}
+.meta b{display:block;font-family:var(--num);font-size:30px;font-weight:600;line-height:1}
+.meta span{font-size:14px;color:var(--muted)}
+.gauge{position:relative;width:min(92%,480px);height:34px;margin:18px auto 0}
+.gauge .rail{position:absolute;left:0;right:0;top:15px;height:4px;background:var(--line);border-radius:2px}
+.gauge .mid{position:absolute;left:50%;top:4px;width:2px;height:26px;background:var(--ink);transform:translateX(-1px)}
+.gauge .needle{position:absolute;top:5px;width:14px;height:24px;border-radius:7px;background:var(--accent);transform:translateX(-7px);transition:left .15s linear}
+.gauge .l,.gauge .r{position:absolute;top:22px;font-size:12px;color:var(--muted)}
+.gauge .l{left:0}.gauge .r{right:0}
+.log{display:flex;gap:8px;overflow-x:auto;padding:4px 14px 10px;min-height:52px}
+.log div{flex:none;border:1.5px solid var(--line);border-radius:10px;padding:4px 10px;font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted);background:var(--surface)}
+.log div b{font-family:var(--num);font-size:20px;display:block;line-height:1.1}
+.log .ok b{color:var(--accent)} .log .warn b{color:var(--warn)} .log .bad b{color:var(--bad)}
+.ctrls{display:flex;gap:8px;padding:0 14px 8px}
+.ctrls button{flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:16px}
+.tap{margin:0 14px 14px;border:0;border-radius:24px;background:var(--tap);color:var(--tap-ink);font-family:var(--num);font-weight:700;font-size:44px;min-height:30vh;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tap:active{filter:brightness(1.15);transform:scale(.99)}
+.tap small{display:block;font-family:var(--txt);font-size:15px;font-weight:500;opacity:.8}
+.gps{font-size:14px;color:var(--muted);text-align:center;padding:0 14px 6px}
+.gps.bad{color:var(--bad);font-weight:600}
+/* clock */
+:root{--clock-bg:#E3E8E6;--clock-ink:#1F2B2F;--clock-ghost:rgba(31,43,47,.06);--fab:#1F2B2F;--fab-ink:#E3E8E6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--clock-bg:#000000;--clock-ink:#9C9C9C;--clock-ghost:rgba(156,156,156,.06);--fab:#424242;--fab-ink:#F2F2F2}}
+:root[data-theme="dark"]{--clock-bg:#000000;--clock-ink:#9C9C9C;--clock-ghost:rgba(156,156,156,.06);--fab:#424242;--fab-ink:#F2F2F2}
+#clock{background:var(--clock-bg);position:relative;overflow-y:auto}
+.clockface{padding:6vh 4vw 0;width:100%;max-width:900px;margin:0 auto}
+.clockface svg{width:100%;height:auto;display:block}
+.clockface polygon{fill:var(--clock-ghost)}
+.clockface polygon.on{fill:var(--clock-ink)}
+.clockface .dot{fill:var(--clock-ink)}
+.clocknote{text-align:center;color:var(--clock-ink);opacity:.7;font-size:14px;margin-top:14px;min-height:1.2em}
+.fab{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:72px;height:72px;border-radius:50%;border:0;background:var(--fab);color:var(--fab-ink);box-shadow:0 4px 14px rgba(0,0,0,.35);display:grid;place-items:center}
+.fab svg{width:28px;height:28px}
+.train{display:flex;flex-direction:column;align-items:center;padding:0 4vw;max-width:900px;margin:0 auto;width:100%;flex:1;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.train[hidden]{display:none}
+.train .rule{width:100%;height:2px;background:#5A5A5A;border:0;margin:3vh 0 2.5vh}
+.trow{display:flex;justify-content:space-between;align-items:center;width:100%}
+.trow svg{height:clamp(26px,6.5vw,44px);width:auto;display:block}
+.trow .dash{height:clamp(8px,2vw,12px)}
+.trow polygon{fill:#3B8FE8}
+.trow .cur polygon{fill:#E0483E}
+.trow .done polygon{fill:#5E5E5E}
+.trow .dash polygon{fill:#6A6A6A}
+.ring{position:relative;width:min(92vw,50vh,600px);aspect-ratio:1;margin-top:2.5vh}
+.ring > svg{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1) rotate(-90deg)}
+.ring > svg{overflow:visible}
+.ring .tick{stroke:#FFFFFF;stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.ring .tick{stroke-width:6px;stroke-linecap:butt}
+.ring .tick[hidden]{display:none}
+.ring .zero-o{stroke:#000;stroke-width:10px;vector-effect:non-scaling-stroke}
+.ring .zero{stroke:#FF2A2A;stroke-width:6px;vector-effect:non-scaling-stroke}
+.ring .zero.hit,.ring .tick.hit{stroke:#FFD400}
+.ring .track{fill:none;stroke:#19381D;stroke-width:12}
+.ring .prog{fill:none;stroke:#2F8A3F;stroke-width:12;stroke-linecap:butt}
+.ring .prog.warn{stroke:#D99A2B}.ring .prog.bad{stroke:#FF2A2A;filter:drop-shadow(0 0 3px rgba(255,42,42,.8))}
+.ring.hot .track{stroke:#5A1010}
+.ring .num{position:absolute;inset:22%;display:grid;place-items:center}
+.ring .num svg{height:100%;width:auto;max-width:100%;transform:none;position:static}
+.ring .num :is(polygon,rect){fill:#9C9C9C}
+.ring .num.bad polygon{fill:#E0483E}
+.tmsg{color:#9C9C9C;text-align:center;margin-top:3vh;font-size:16px;min-height:2.6em;font-variant-numeric:tabular-nums;max-width:90%}
+.tmsg b{font-weight:600}.tmsg .ok{color:#4FBF63}.tmsg .warn{color:#E0A83A}.tmsg .bad{color:#E0483E}
+.syncp{display:flex;flex-direction:column;align-items:center;padding:0 4vw;max-width:900px;margin:0 auto;width:100%}
+.syncp[hidden]{display:none}
+.syncp .rule{width:100%;height:2px;background:#5A5A5A;border:0;margin:5vh 0 4vh}
+.syncp .off{color:#F2F2F2;font-size:clamp(20px,5.2vw,30px);text-align:center;font-variant-numeric:tabular-nums;margin-bottom:4vh}
+.sgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,3vw,20px) clamp(6px,2.5vw,18px);width:100%;max-width:520px}
+.sgrid button{aspect-ratio:1;border-radius:50%;border:0;color:#F2F2F2;font-size:clamp(13px,3.7vw,20px);font-weight:500;letter-spacing:0;touch-action:manipulation;white-space:nowrap;padding:0}
+.sgrid .p{background:#1E4A17}.sgrid .m{background:#4E1222}
+.sgrid button:active{filter:brightness(1.35)}
+.syncp .rule2{width:100%;height:2px;background:#5A5A5A;border:0;margin:4vh 0 0}
+.setp{display:flex;flex-direction:column;padding:0 4vw 120px;max-width:900px;margin:0 auto;width:100%}
+.setp[hidden]{display:none}
+.setp .rule{width:100%;height:2px;background:#5A5A5A;border:0;margin:4vh 0 2.5vh}
+.corow{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr;align-items:center;column-gap:clamp(4px,1.6vw,10px);margin-bottom:6px}
+.corow .lab{color:#F2F2F2;font-size:clamp(20px,5.4vw,30px);padding-top:10px;min-width:3.2em}
+.corow .sep{color:#F2F2F2;font-size:22px;padding-top:12px}
+.cof{position:relative;padding-bottom:16px}
+.cof input{width:100%;height:clamp(40px,9vw,54px);border:1.5px solid #BDBDBD;border-radius:4px;background:#FFFFFF;color:#1F1F1F;text-align:center;font-size:clamp(20px,5.4vw,28px);padding:0;font-variant-numeric:tabular-nums}
+.cof input::placeholder{color:#8E8E8E}
+.cof input.errf{border-color:#E0483E;box-shadow:0 0 0 2px #E0483E}
+.cof .cnt{position:absolute;right:2px;bottom:0;font-size:12px;color:#6E6E6E}
+.setp .warnt{color:#F2F2F2;text-align:center;font-size:clamp(18px,4.8vw,26px);margin:1.5vh 0 1vh}
+.setp .emsg{color:#FF6B61;text-align:center;min-height:1.3em;margin-bottom:1vh}
+.cobtns{display:flex;justify-content:space-around;gap:10px}
+.cobtns button{border:0;border-radius:4px;background:#3B8FE8;color:#fff;font-size:16px;font-weight:500;letter-spacing:.03em;padding:12px 8px;flex:1;max-width:34%;line-height:1.2;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.cobtns button:active{filter:brightness(1.15)}
+.copan{display:flex;flex-direction:column;align-items:center;padding:0 4vw;max-width:900px;margin:0 auto;width:100%;flex:1;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.copan[hidden]{display:none}
+.copan .rule{width:100%;height:2px;background:#5A5A5A;border:0;margin:3vh 0 2.5vh}
+.coline svg{height:clamp(28px,7vw,46px);width:auto;display:block}
+.coline.cur :is(polygon,rect){fill:#3B8FE8}
+.coline.nxt :is(polygon,rect){fill:#8A8A8A}
+.copan .ring{margin-top:2.5vh}
+#coRow[hidden]{display:none}
+#coRow.many svg{height:clamp(20px,5vw,34px)}
+#coRow.many .dash{height:clamp(6px,1.5vw,10px)}
+.copan .ring .num{inset:26% 18%}
+.cogap{margin-top:1.8vh;height:clamp(28px,7vw,46px)}
+.cogap svg{height:100%;width:auto;display:block;margin:0 auto}
+.cogap :is(polygon,rect){fill:#8A8A8A}
+.copan .coline.nxt{margin-top:1.2vh}
+.audiobtn{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top,0px));z-index:8;border:0;border-radius:22px;background:#FFD400;color:#000;font-weight:600;font-size:16px;padding:10px 18px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+.audiobtn[hidden]{display:none}
+.dialmenu{position:fixed;right:max(24px,env(safe-area-inset-right,0px));bottom:calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-end;gap:14px;z-index:9;pointer-events:none}
+.dialmenu button{pointer-events:auto;border:0;border-radius:12px;padding:10px 18px;font-size:19px;font-weight:500;box-shadow:0 3px 8px rgba(0,0,0,.35);opacity:0;transform:translateY(12px) scale(.96);transition:opacity .16s ease,transform .16s ease;visibility:hidden}
+.dialmenu.on button{opacity:1;transform:none;visibility:visible}
+.dialmenu.on button:nth-last-child(1){transition-delay:0s}.dialmenu.on button:nth-last-child(2){transition-delay:.02s}.dialmenu.on button:nth-last-child(3){transition-delay:.04s}.dialmenu.on button:nth-last-child(4){transition-delay:.06s}.dialmenu.on button:nth-last-child(5){transition-delay:.08s}.dialmenu.on button:nth-last-child(6){transition-delay:.1s}.dialmenu.on button:nth-last-child(7){transition-delay:.12s}
+.m-amber{background:#E9A93E;color:#fff}.m-dark{background:#3E3E3E;color:#F2F2F2}.m-blue{background:#3A5A78;color:#fff}.m-red{background:#9B3530;color:#fff}.m-grey{background:#9A9A9A;color:#fff}
+.fab .x{display:none}.fab.open .x{display:block}.fab.open .bars{display:none}
+body.timeonly .fab,body.timeonly .dialmenu,body.syncing .fab{display:none}
+.syncbar{position:fixed;left:0;right:0;bottom:0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;gap:10px;max-width:640px;margin:0 auto}
+body.syncing .syncbar{display:flex}
+.syncbar .go2{border:0;border-radius:20px;background:#9B3530;color:#fff;font-weight:600;font-size:22px;min-height:26vh;touch-action:manipulation}
+.syncbar .go2 small{display:block;font-size:15px;font-weight:500;opacity:.85;margin-top:6px}
+.syncbar .no{border:1.5px solid #555;background:none;color:var(--clock-ink);border-radius:14px;padding:14px;font-weight:600}
+@media (prefers-reduced-motion:reduce){.dialmenu button{transition:none}}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:10}
+.sheet.on{display:flex}
+.sheet .panel{width:100%;max-width:640px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet .panel button{display:block;width:100%;text-align:left;padding:18px 8px;border:0;border-bottom:1.5px solid var(--line);background:none;font-size:19px;font-weight:600}
+.sheet .panel button:last-child{border-bottom:0;color:var(--muted);font-weight:500}
+.back{border:1.5px solid var(--line);background:var(--surface);border-radius:22px;padding:8px 14px;font-weight:600}
+.syncbtn{width:100%;margin-top:10px;padding:16px;border-radius:14px;border:0;background:var(--ink);color:var(--bg);font-weight:600;font-size:17px}
+@media (prefers-reduced-motion:reduce){.gauge .needle{transition:none}.tap:active{transform:none}}
+
+/* sempre nero, qualunque tema imposti il visualizzatore */
+:root, :root[data-theme="light"], :root[data-theme="dark"], :root:not([data-theme="light"]){
+  --bg:#000000 !important; --surface:#161616 !important; --ink:#EDEDED !important; --muted:#9A9A9A !important; --line:#333333 !important;
+  --accent:#7FD1B9 !important; --accent-ink:#000000 !important; --warn:#F5B642 !important; --bad:#F26B6B !important;
+  --tap:#7FD1B9 !important; --tap-ink:#000000 !important;
+  --clock-bg:#000000 !important; --clock-ink:#9C9C9C !important; --clock-ghost:rgba(156,156,156,.06) !important;
+  --fab:#424242 !important; --fab-ink:#F2F2F2 !important;
+  color-scheme:dark;
+}
+html,body{background:#000 !important}
+#tmsg,#coMsg{display:none !important}
+
+/* ---------- orizzontale: segue la rotazione del telefono (e il blocco rotazione) ---------- */
+@media (orientation: landscape) and (max-height: 620px){
+  #clock.on{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-auto-rows:min-content;align-content:safe center;column-gap:4vw;padding:0 calc(76px + env(safe-area-inset-right,0px)) 0 3vw}
+  #clock .clockface{grid-column:1;padding:2vh 0 0;max-width:none;width:100%}
+  #clock .clocknote{margin-top:6px}
+  .train:not([hidden]),.copan:not([hidden]){display:contents}
+  .train .rule,.copan .rule{grid-column:1;margin:3vh 0 3vh}
+  .train .trow,#coRow,#coCur,.cogap,#coNext{grid-column:1;justify-self:center}
+  .train .trow,#coRow{width:100%}
+  .train .ring,.copan .ring{grid-column:2;grid-row:1 / span 8;align-self:center;width:min(84vh,42vw);margin:0}
+  .cogap{margin-top:3vh}
+  .syncp:not([hidden]),.setp:not([hidden]){grid-column:1 / -1}
+  .fab{width:60px;height:60px}
+  .dialmenu{display:grid;grid-template-columns:auto auto;gap:10px 12px;justify-items:end;bottom:calc(92px + env(safe-area-inset-bottom,0px));max-height:calc(100vh - 110px);overflow-y:auto}
+  .dialmenu button{font-size:16px;padding:8px 14px;width:100%;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- CLOCK -->
+<section class="view on" id="clock">
+  <div class="clockface"><svg id="clockSvg" role="img" aria-label="Orario attuale"></svg>
+  <div class="clocknote" id="clockNote"></div></div>
+  <div class="train" id="train" hidden>
+    <hr class="rule">
+    <div class="trow" id="trow"></div>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="prog" id="tprog" cx="50" cy="50" r="44" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/><line class="zero-o" x1="86" y1="50" x2="100" y2="50"/><line class="zero" x1="86" y1="50" x2="100" y2="50"/><line class="tick" x1="86" y1="50" x2="100" y2="50"/></svg><div class="num" id="tnum"></div></div>
+    <div class="tmsg" id="tmsg">Tocca lo schermo a ogni passaggio</div>
+  </div>
+  <div class="copan" id="copan" hidden>
+    <hr class="rule">
+    <div class="coline cur" id="coCur"></div>
+    <div class="trow" id="coRow" hidden></div>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" id="cotrack" cx="50" cy="50" r="44"/><circle class="prog" id="coprog" cx="50" cy="50" r="44" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/><line class="zero-o" x1="86" y1="50" x2="100" y2="50"/><line class="zero" x1="86" y1="50" x2="100" y2="50"/><line class="tick" x1="86" y1="50" x2="100" y2="50"/></svg><div class="num" id="coNum"></div></div>
+    <div class="cogap" id="coGap"></div>
+    <div class="coline nxt" id="coNext"></div>
+    <div class="tmsg" id="coMsg"></div>
+  </div>
+  <div class="syncp" id="syncp" hidden>
+    <hr class="rule">
+    <div class="off" id="offTxt">Modificato di: 0 minuti e 0 secondi</div>
+    <div class="sgrid" id="sgrid">
+      <button class="p" data-ms="60000">+1 m</button><button class="p" data-ms="1000">+1 s</button><button class="p" data-ms="100">+1 ds</button><button class="p" data-ms="10">+1 cs</button><button class="p" data-ms="1">+1 ms</button>
+      <button class="m" data-ms="-60000">−1 m</button><button class="m" data-ms="-1000">−1 s</button><button class="m" data-ms="-100">−1 ds</button><button class="m" data-ms="-10">−1 cs</button><button class="m" data-ms="-1">−1 ms</button>
+    </div>
+    <hr class="rule2">
+  </div>
+  <div class="setp" id="setp" hidden>
+    <hr class="rule">
+    <div id="corows">
+      <div class="corow" data-r="0"><span class="lab">PA1:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA1 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA1 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA1 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="1"><span class="lab">PA2:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA2 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA2 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA2 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="2"><span class="lab">PA3:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA3 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA3 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA3 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="3"><span class="lab">PA4:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA4 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA4 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA4 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="4"><span class="lab">PA5:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA5 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA5 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA5 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="5"><span class="lab">PA6:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA6 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA6 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA6 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="6"><span class="lab">PA7:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA7 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA7 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA7 secondi"><span class="cnt">0/2</span></div></div>
+      <div class="corow" data-r="7"><span class="lab">PA8:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="HH" data-k="h" aria-label="PA8 ore"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="MM" data-k="m" aria-label="PA8 minuti"><span class="cnt">0/2</span></div><span class="sep">:</span>
+        <div class="cof"><input inputmode="numeric" maxlength="2" placeholder="SS" data-k="s" aria-label="PA8 secondi"><span class="cnt">0/2</span></div></div>
+    </div>
+    <div class="warnt">Attenzione: da impostare il giorno della gara!</div>
+    <div class="emsg" id="coErr"></div>
+    <div class="cobtns"><button id="coDel">CANCELLA</button><button id="coClear">CANCELLA TUTTO</button><button id="coOk">OK</button></div>
+  </div>
+  <div class="dialmenu" id="dialmenu">
+    <button class="m-amber" data-m="set">Impostazioni</button>
+    <button class="m-dark" data-m="run-s">PA Countdown</button>
+    <button class="m-dark" data-m="run-cs">PA in centesimi</button>
+    <button class="m-dark" data-m="run-ms">PA in millesimi</button>
+    <button class="m-blue" data-m="pas">Imposta PA</button>
+    <button class="m-red" data-m="sync">Sincronizza</button>
+    <button class="m-grey" data-m="train">Allenamento</button>
+    <button class="m-grey" data-m="only">Solo orario</button>
+  </div>
+  <button class="fab" id="fab" aria-label="Menu" aria-expanded="false"><svg class="bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</section>
+
+<!-- HOME -->
+<section class="view" id="home">
+  <div class="top">
+    <button class="back" data-toclock>Orologio</button>
+    <h1>Le mie PA<small>Tocca Via per partire</small></h1>
+    <button class="icon" id="toSettings" aria-label="Impostazioni">⚙︎</button>
+  </div>
+  <div class="scroll"><div class="wrap">
+    <div id="list"></div>
+    <button class="add" id="addPa">+ Aggiungi PA</button>
+  </div></div>
+</section>
+
+<!-- EDIT -->
+<section class="view" id="edit">
+  <div class="top"><h1 id="editTitle">Nuova PA</h1></div>
+  <div class="scroll"><div class="wrap">
+    <label class="f" for="fName">Nome</label>
+    <input type="text" id="fName" placeholder="PA1" autocomplete="off">
+    <label class="f">Tipo di prova</label>
+    <div class="seg" id="fType">
+      <button data-v="tempo" class="on">Tempi imposti</button>
+      <button data-v="media">Media imposta (GPS)</button>
+    </div>
+    <div id="boxTempo">
+      <label class="f" for="fTimes">Tempi dei tratti, in secondi</label>
+      <textarea id="fTimes" placeholder="12,34&#10;25,10&#10;1:05,20"></textarea>
+      <div class="hint">Un tempo per riga, uno per ogni tratto tra due pressostati. Puoi scrivere 12,34 oppure 1:05,20.</div>
+    </div>
+    <div id="boxMedia" hidden>
+      <label class="f" for="fMedie">Medie: km di inizio e km/h</label>
+      <textarea id="fMedie" placeholder="0 40&#10;2,5 35"></textarea>
+      <div class="hint">Una riga per ogni cambio media. «0 40» = dalla partenza a 40 km/h; «2,5 35» = dal km 2,5 a 35 km/h.</div>
+    </div>
+    <div class="err" id="fErr"></div>
+    <div class="row">
+      <button class="btn" id="fCancel">Annulla</button>
+      <button class="btn pri" id="fSave">Salva PA</button>
+    </div>
+    <div class="row"><button class="btn del" id="fDel">Elimina questa PA</button></div>
+  </div></div>
+</section>
+
+<!-- SETTINGS -->
+<section class="view" id="settings">
+  <div class="top"><h1>Impostazioni</h1></div>
+  <div class="scroll"><div class="wrap">
+    <label class="f" for="sTrInt">Allenamento: secondi tra un passaggio e l'altro</label>
+    <input type="number" id="sTrInt" min="1" max="99" step="1" inputmode="numeric">
+    <div class="hint">Lo zero cade sempre allo scoccare del minuto. Con 5 secondi e 4 passaggi: :00, :05, :10, :15, :20, poi 40 secondi di attesa e si ricomincia da solo.</div>
+    <label class="f" for="sTrCnt">Allenamento: numero di passaggi dopo lo zero</label>
+    <input type="number" id="sTrCnt" min="1" max="8" step="1" inputmode="numeric">
+    <label class="f" for="sAnt">Anticipo al passaggio, in centesimi</label>
+    <input type="number" id="sAnt" min="0" max="100" step="1" inputmode="numeric" placeholder="0">
+    <label class="f" for="sRit">Ritardo al passaggio, in centesimi</label>
+    <input type="number" id="sRit" min="0" max="100" step="1" inputmode="numeric" placeholder="0">
+    <div class="hint">Scrivi solo il numero, es. 1 o 2. Sul cerchio compare una tacca bianca nel punto in cui passare. Lascia vuoto o 0 per nasconderla.</div>
+    <label class="f" for="sBeeps">Bip di conto alla rovescia</label>
+    <input type="number" id="sBeeps" min="0" max="10" step="1" inputmode="numeric">
+    <div class="hint">Quanti bip brevi prima dello zero (uno al secondo).</div>
+    <label class="f">Bip allo scoccare dello zero</label>
+    <div class="seg" id="sZero"><button data-v="1">Sì</button><button data-v="0">No</button></div>
+    <div class="hint">Il bip lungo sullo zero, oppure sulla tacca bianca se hai impostato anticipo o ritardo. In tutte le modalità. I bip brevi del conto alla rovescia restano.</div>
+    <label class="f"><input type="checkbox" id="sVib"> Vibra al passaggio dello zero</label>
+    <div class="row">
+      <button class="btn" id="sCancel">Annulla</button>
+      <button class="btn pri" id="sSave">Salva impostazioni</button>
+    </div>
+  </div></div>
+</section>
+
+<!-- RUN -->
+<section class="view" id="run">
+  <div class="rhead">
+    <div class="t"><b id="rName">PA1</b><span id="rSub">Tratto 1 di 3</span></div>
+    <button class="close" id="rExit">Esci</button>
+  </div>
+  <div class="dial">
+    <div class="big" id="rBig">0,00</div>
+    <div class="cap" id="rCap"></div>
+    <div class="meta" id="rMeta"></div>
+    <div class="gauge" id="rGauge" hidden>
+      <div class="rail"></div><div class="mid"></div><div class="needle" id="rNeedle" style="left:50%"></div>
+      <span class="l">−5 s anticipo</span><span class="r">ritardo +5 s</span>
+    </div>
+  </div>
+  <div class="gps" id="rGps" hidden></div>
+  <div class="log" id="rLog"></div>
+  <div class="ctrls" id="rCtrls"></div>
+  <button class="tap" id="rTap">Via<small>Tocca sul pressostato di partenza</small></button>
+</section>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const KEY = 'regolarita-vespa-v1';
+
+/* ---------- storage ---------- */
+let data = {pas:[], settings:{beeps:5, offsetCs:0, cal:100, vib:true, clockMs:0, precision:'cs', trInt:5, trCnt:4}};
+try{
+  const raw = localStorage.getItem(KEY);
+  if(raw){ const d = JSON.parse(raw); if(d && Array.isArray(d.pas)) data = {pas:d.pas, settings:Object.assign(data.settings, d.settings||{})}; }
+  else{
+    data.pas = [
+      {id:uid(), name:'PA1', type:'tempo', times:[12.34, 25.10, 8.00]},
+      {id:uid(), name:'PA2', type:'media', medie:[{km:0,kmh:40},{km:2.5,kmh:35}]}
+    ];
+  }
+}catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){} }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+/* ---------- format / parse ---------- */
+function fmt(s, sign){
+  const neg = s < 0; let cs = Math.round(Math.abs(s)*100);
+  const m = Math.floor(cs/6000); cs -= m*6000;
+  const sec = Math.floor(cs/100), c = cs%100;
+  const body = (m ? m+':'+String(sec).padStart(2,'0') : String(sec)) + ',' + String(c).padStart(2,'0');
+  return (neg ? '−' : (sign ? '+' : '')) + body;
+}
+function fmtP(s, sign){
+  const pr = data.settings.precision || 'cs';
+  if(pr === 'cs') return fmt(s, sign);
+  const neg = s < 0, a = Math.abs(s);
+  if(pr === 's'){ const v = Math.round(a); const m = Math.floor(v/60), sec = v%60; return (neg?'−':(sign?'+':'')) + (m ? m+':'+String(sec).padStart(2,'0') : String(sec)); }
+  let ms = Math.round(a*1000); const m = Math.floor(ms/60000); ms -= m*60000; const sec = Math.floor(ms/1000), r = ms%1000;
+  return (neg?'−':(sign?'+':'')) + (m ? m+':'+String(sec).padStart(2,'0') : String(sec)) + ',' + String(r).padStart(3,'0');
+}
+function fmt1(s, sign){ const v = Math.round(Math.abs(s)*10)/10; return (s<0?'−':(sign?'+':'')) + v.toFixed(1).replace('.',','); }
+function num(str){ return parseFloat(String(str).trim().replace(',','.')); }
+function parseTime(str){
+  str = str.trim(); if(!str) return NaN;
+  if(str.includes(':')){ const [m,s] = str.split(':'); return parseInt(m,10)*60 + num(s); }
+  return num(str);
+}
+function cls(abs, ok, warn){ return abs <= ok ? 'ok' : abs <= warn ? 'warn' : 'bad'; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- views ---------- */
+function show(id){ document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id)); }
+
+function renderList(){
+  const L = $('#list');
+  if(!data.pas.length){ L.innerHTML = '<p class="empty">Nessuna prova ancora. Aggiungi le PA prima della partenza, poi toccane una per partire.</p>'; return; }
+  L.innerHTML = data.pas.map(p => {
+    let sum;
+    if(p.type === 'tempo') sum = p.times.length + (p.times.length === 1 ? ' tratto: ' : ' tratti: ') + p.times.map(t => fmt(t)).join(' / ');
+    else sum = p.medie.length === 1 ? 'Media ' + fmtKmh(p.medie[0].kmh) + ' km/h' : 'Media ' + p.medie.map(m => fmtKmh(m.kmh)).join(' → ') + ' km/h';
+    return `<div class="pa"><div class="n">${esc(p.name)}</div>
+      <div class="d"><b>${p.type === 'tempo' ? 'Tempi imposti' : 'Media imposta'}</b><span>${esc(sum)}</span></div>
+      <button class="edit" data-edit="${p.id}">Modifica</button>
+      <button class="go" data-go="${p.id}">Via</button></div>`;
+  }).join('');
+}
+function fmtKmh(v){ return String(v).replace('.',','); }
+
+$('#list').addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'), ed = e.target.closest('[data-edit]');
+  if(g) startRun(data.pas.find(p => p.id === g.dataset.go));
+  if(ed) openEdit(data.pas.find(p => p.id === ed.dataset.edit));
+});
+
+/* ---------- edit ---------- */
+let editing = null, editType = 'tempo';
+function setType(t){
+  editType = t;
+  document.querySelectorAll('#fType button').forEach(b => b.classList.toggle('on', b.dataset.v === t));
+  $('#boxTempo').hidden = t !== 'tempo'; $('#boxMedia').hidden = t !== 'media';
+}
+$('#fType').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setType(b.dataset.v); });
+function openEdit(p){
+  editing = p || null;
+  $('#editTitle').textContent = p ? 'Modifica ' + p.name : 'Nuova PA';
+  $('#fName').value = p ? p.name : 'PA' + (data.pas.length + 1);
+  $('#fTimes').value = p && p.times ? p.times.map(t => fmt(t)).join('\n') : '';
+  $('#fMedie').value = p && p.medie ? p.medie.map(m => fmtKmh(m.km) + ' ' + fmtKmh(m.kmh)).join('\n') : '0 40';
+  setType(p ? p.type : 'tempo');
+  $('#fDel').parentElement.hidden = !p;
+  $('#fErr').textContent = '';
+  show('edit');
+}
+$('#addPa').onclick = () => openEdit(null);
+$('#fCancel').onclick = () => show('home');
+$('#fDel').onclick = () => {
+  if(!editing || !confirm('Eliminare ' + editing.name + '?')) return;
+  data.pas = data.pas.filter(p => p !== editing); save(); renderList(); show('home');
+};
+$('#fSave').onclick = () => {
+  const name = $('#fName').value.trim() || 'PA';
+  const p = {id: editing ? editing.id : uid(), name, type: editType};
+  if(editType === 'tempo'){
+    const parts = $('#fTimes').value.split(/[\n;\/]+/).map(s => s.trim()).filter(Boolean);
+    const times = parts.map(parseTime);
+    if(!times.length || times.some(t => !(t > 0))){ $('#fErr').textContent = 'Scrivi almeno un tempo valido, un tratto per riga (es. 12,34).'; return; }
+    p.times = times;
+  } else {
+    const lines = $('#fMedie').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const medie = lines.map(l => { const [a,b] = l.split(/\s+/); return {km:num(a), kmh:num(b)}; });
+    if(!medie.length || medie.some(m => isNaN(m.km) || !(m.kmh > 0))){ $('#fErr').textContent = 'Ogni riga deve avere km e media, es. «0 40».'; return; }
+    medie.sort((a,b) => a.km - b.km); medie[0].km = 0;
+    p.medie = medie;
+  }
+  if(editing) data.pas[data.pas.indexOf(editing)] = p; else data.pas.push(p);
+  save(); renderList(); show('home');
+};
+
+/* ---------- settings ---------- */
+function setZeroSeg(on){ document.querySelectorAll('#sZero button').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === on)); }
+$('#sZero').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setZeroSeg(b.dataset.v === '1'); });
+function openSettings(){
+  const s = data.settings;
+  $('#sAnt').value = s.passAnt || ''; $('#sRit').value = s.passRit || ''; $('#sTrInt').value = s.trInt || 5; $('#sTrCnt').value = s.trCnt || 4; $('#sBeeps').value = s.beeps; setZeroSeg(s.zeroBeep !== false); $('#sVib').checked = s.vib;
+  show('settings');
+}
+$('#toSettings').onclick = openSettings;
+$('#sCancel').onclick = () => { saveMode('clock'); goClock(); };
+$('#sSave').onclick = () => {
+  const s = data.settings;
+  s.beeps = Math.max(0, Math.min(10, parseInt($('#sBeeps').value,10) || 0));
+  s.offsetCs = 0;
+  s.zeroBeep = $('#sZero .on') ? $('#sZero .on').dataset.v === '1' : true;
+  s.vib = $('#sVib').checked;
+  s.passAnt = Math.max(0, Math.min(100, Math.round(Math.abs(num($('#sAnt').value)) || 0)));
+  s.passRit = Math.max(0, Math.min(100, Math.round(Math.abs(num($('#sRit').value)) || 0)));
+  s.passCs = s.passAnt - s.passRit;
+  placeTicks();
+  s.trInt = Math.max(1, Math.min(99, parseInt($('#sTrInt').value,10) || 5));
+  s.trCnt = Math.max(1, Math.min(8, parseInt($('#sTrCnt').value,10) || 4));
+  save(); saveMode('clock'); goClock();
+};
+
+/* ---------- audio ---------- */
+let ac = null, scheduled = [];
+function ensureAudio(){
+  try{
+    if(!ac){
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      ac.onstatechange = () => { if(ac.state === 'running') reschedAll(); };
+      // un suono muto sblocca l'audio su Android
+      const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start(0);
+    }
+    if(ac.state === 'suspended') ac.resume().then(reschedAll).catch(() => {});
+  }catch(e){}
+}
+function reschedAll(){ coState.sched = null; if(tr){ tr.next = -1; tr.vib = -1; tr.sched = null; } }
+// i bip vengono programmati solo negli ultimi secondi, così nessuna attesa lunga (es. i 40 s prima dello zero) li fa perdere
+const SCHED_AHEAD = 7;
+function maybeSchedule(store, key, rem){
+  if(!ac || rem > SCHED_AHEAD || store.sched === key) return;
+  if(ac.state !== 'running'){ try{ ac.resume(); }catch(e){} }
+  store.sched = key; scheduleCountdown(rem);
+}
+function beepAt(t, freq, dur, vol, keep){
+  vol = vol || 0.5;
+  if(!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.005);
+  g.gain.setValueAtTime(vol, t + dur - 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+  scheduled.push({o, t, keep: !!keep});
+}
+function clearBeeps(all){
+  // ferma solo i bip non ancora partiti; il bip del passaggio (zero o tacca) resta, salvo uscita dalla modalità
+  const now = ac ? ac.currentTime : 0;
+  scheduled = scheduled.filter(x => {
+    if(x.t > now + 0.005 && (all || !x.keep)){ try{ x.o.stop(); }catch(e){} return false; }
+    return x.t + 1 > now;
+  });
+}
+function scheduleCountdown(remaining){
+  clearBeeps(); if(!ac) return;
+  const now = ac.currentTime, off = 0;
+  for(let n = data.settings.beeps; n >= 1; n--){
+    const t = now + remaining - n - off;
+    if(t > now + 0.02) beepAt(t, 880, 0.08);
+  }
+  // bip del passaggio: sullo zero, oppure sulla tacca bianca se c'è anticipo o ritardo
+  const lead = ((data.settings.passAnt || 0) - (data.settings.passRit || 0)) / 100;
+  const t0 = now + remaining - off - lead;
+  const dup = scheduled.some(x => x.keep && Math.abs(x.t - t0) < 0.05);
+  if(t0 > now + 0.02 && !dup && data.settings.zeroBeep !== false) beepAt(t0, 1320, 0.5, 0.95, true);
+}
+function click(){ if(ac) beepAt(ac.currentTime + 0.001, 600, 0.04); }
+
+/* ---------- wake lock ---------- */
+let wl = null;
+async function keepAwake(){ try{ if('wakeLock' in navigator) wl = await navigator.wakeLock.request('screen'); }catch(e){} }
+document.addEventListener('visibilitychange', () => { if(run && document.visibilityState === 'visible') keepAwake(); });
+
+/* ---------- run ---------- */
+let run = null, raf = 0;
+
+function startRun(p){
+  run = {pa:p, started:false, done:false, t0:0, i:0, results:[], vibed:false,
+         dist:0, last:null, latest:null, lastFixAt:0, speed:0, acc:null, watch:null, gpsErr:''};
+  $('#rName').textContent = p.name;
+  $('#rLog').innerHTML = '';
+  $('#rGauge').hidden = p.type !== 'media';
+  $('#rGps').hidden = p.type !== 'media';
+  buildCtrls();
+  if(p.type === 'media') startGps();
+  setTap();
+  show('run'); keepAwake();
+  cancelAnimationFrame(raf); loop();
+}
+
+function buildCtrls(){
+  const c = $('#rCtrls');
+  if(run.pa.type === 'tempo'){
+    c.innerHTML = '<button data-a="undo">Annulla ultimo</button><button data-a="reset">Ricomincia</button>';
+  } else {
+    c.innerHTML = '<button data-a="m10">−10 m</button><button data-a="p10">+10 m</button><button data-a="reset">Ricomincia</button>';
+  }
+}
+$('#rCtrls').addEventListener('click', e => {
+  const a = e.target.closest('button'); if(!a || !run) return;
+  const act = a.dataset.a;
+  if(act === 'reset'){ if(run.started && !confirm('Ricominciare la prova da zero?')) return; clearBeeps(); const p = run.pa; stopRun(); startRun(p); }
+  if(act === 'undo') undo();
+  if(act === 'm10' && run.started) run.dist = Math.max(0, run.dist - 10);
+  if(act === 'p10' && run.started) run.dist += 10;
+});
+
+function setTap(){
+  const t = $('#rTap'), p = run.pa;
+  if(p.type === 'tempo'){
+    if(!run.started) t.innerHTML = 'Via<small>Tocca sul pressostato di partenza</small>';
+    else if(run.done) t.innerHTML = 'Prova finita<small>Tocca Esci per tornare alle PA</small>';
+    else t.innerHTML = 'Passaggio<small>Tocca sul pressostato ' + (run.i + 2) + '</small>';
+  } else {
+    t.innerHTML = run.started ? 'Fine prova<small>Tocca sul pressostato di arrivo</small>' : 'Via<small>Tocca sul pressostato di partenza</small>';
+    if(run.done) t.innerHTML = 'Prova finita<small>Tocca Esci per tornare alle PA</small>';
+  }
+}
+
+function tap(){
+  if(!run || run.done) return;
+  ensureAudio();
+  const now = performance.now(), p = run.pa;
+  if(p.type === 'tempo'){
+    if(!run.started){
+      run.started = true; run.t0 = now; run.i = 0; run.vibed = false;
+      scheduleCountdown(p.times[0]);
+    } else {
+      const el = (now - run.t0) / 1000, target = p.times[run.i];
+      run.results.push({i:run.i, target, actual:el, delta:el - target, at:now});
+      clearBeeps(); click();
+      if(run.i < p.times.length - 1){ run.i++; run.t0 = now; run.vibed = false; scheduleCountdown(p.times[run.i]); }
+      else run.done = true;
+      renderLog();
+    }
+  } else {
+    if(!run.started){
+      if(!run.latest && !run.gpsErr){ /* partiamo lo stesso, il GPS agganciherà dopo */ }
+      run.started = true; run.t0 = now; run.dist = 0; run.last = run.latest; run.lastFixAt = now;
+      click();
+    } else {
+      const el = (now - run.t0) / 1000, d = curDist(now);
+      run.done = true; run.endEl = el; run.endDist = d; click();
+    }
+  }
+  setTap();
+}
+function undo(){
+  if(!run || run.pa.type !== 'tempo' || !run.started) return;
+  if(!run.results.length){ clearBeeps(); run.started = false; setTap(); return; }
+  const r = run.results.pop();
+  run.done = false; run.i = r.i; run.t0 = r.at - r.actual * 1000; run.vibed = r.delta >= 0;
+  const remaining = r.target - (performance.now() - run.t0) / 1000;
+  scheduleCountdown(remaining);
+  renderLog(); setTap();
+}
+function renderLog(){
+  $('#rLog').innerHTML = run.results.map(r => {
+    const c = cls(Math.abs(r.delta), 0.10, 0.50);
+    return `<div class="${c}">T${r.i + 1}<b>${data.settings.precision === 'ms' ? fmtP(r.delta, true) : fmt(r.delta, true)}</b></div>`;
+  }).join('');
+}
+
+$('#rTap').addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
+document.addEventListener('keydown', e => {
+  if(!run || !$('#run').classList.contains('on')) return;
+  if([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'MediaPlayPause', 'AudioVolumeUp', 'AudioVolumeDown'].includes(e.key)){ e.preventDefault(); tap(); }
+});
+$('#rExit').onclick = () => {
+  if(run && run.started && !run.done && !confirm('Uscire dalla prova in corso?')) return;
+  stopRun(); show('home');
+};
+function stopRun(){
+  cancelAnimationFrame(raf); clearBeeps(true);
+  if(run && run.watch != null){ try{ navigator.geolocation.clearWatch(run.watch); }catch(e){} }
+  try{ wl && wl.release(); }catch(e){} wl = null;
+  run = null;
+}
+
+/* ---------- GPS / media ---------- */
+function startGps(){
+  if(!('geolocation' in navigator)){ run.gpsErr = 'Questo browser non dà accesso al GPS.'; return; }
+  try{
+    run.watch = navigator.geolocation.watchPosition(onPos, err => {
+      run && (run.gpsErr = err.code === 1
+        ? 'Posizione non consentita. Abilita la posizione per questa pagina; se non funziona nell\u2019app, apri il link in Chrome.'
+        : 'GPS senza segnale, attendo…');
+    }, {enableHighAccuracy:true, maximumAge:0, timeout:15000});
+  }catch(e){ run.gpsErr = 'GPS non disponibile qui: apri il link in Chrome.'; }
+}
+function hav(a, b){
+  const R = 6371000, toR = x => x * Math.PI / 180;
+  const dLat = toR(b.latitude - a.latitude), dLon = toR(b.longitude - a.longitude);
+  const s = Math.sin(dLat/2)**2 + Math.cos(toR(a.latitude)) * Math.cos(toR(b.latitude)) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+function onPos(pos){
+  if(!run) return;
+  const c = pos.coords; run.gpsErr = ''; run.acc = c.accuracy;
+  const fix = {latitude:c.latitude, longitude:c.longitude, t:pos.timestamp, speed:c.speed};
+  run.latest = fix;
+  if(!run.started || run.done) return;
+  if(c.accuracy > 35) return;
+  if(!run.last){ run.last = fix; run.lastFixAt = performance.now(); return; }
+  const raw = hav(run.last, fix), dt = (fix.t - run.last.t) / 1000;
+  if(dt <= 0) return;
+  const v = raw / dt;
+  const still = (c.speed != null && c.speed < 0.6) || v < 0.6;
+  if(v > 45 || (still && raw < 4)){ if(v > 45) run.last = fix; run.speed = still ? 0 : run.speed; run.lastFixAt = performance.now(); return; }
+  run.dist += raw * data.settings.cal / 100;
+  run.speed = (c.speed != null && c.speed >= 0) ? c.speed : v;
+  run.last = fix; run.lastFixAt = performance.now();
+}
+function curDist(now){
+  if(!run.started) return 0;
+  const ahead = Math.min(1.5, (now - run.lastFixAt) / 1000);
+  return run.dist + run.speed * data.settings.cal / 100 * Math.max(0, ahead);
+}
+function idealTime(m, medie){
+  let t = 0;
+  for(let k = 0; k < medie.length; k++){
+    const a = medie[k].km * 1000, b = k + 1 < medie.length ? medie[k+1].km * 1000 : Infinity;
+    if(m <= a) break;
+    const seg = Math.min(m, b) - a;
+    t += seg / (medie[k].kmh / 3.6);
+  }
+  return t;
+}
+function idealDist(t, medie){
+  let d = 0, left = t;
+  for(let k = 0; k < medie.length; k++){
+    const a = medie[k].km * 1000, b = k + 1 < medie.length ? medie[k+1].km * 1000 : Infinity;
+    const v = medie[k].kmh / 3.6, segT = (b - a) / v;
+    if(left <= segT) return a + left * v;
+    left -= segT; d = b;
+  }
+  return d;
+}
+function mediaAt(m, medie){ let v = medie[0].kmh; for(const x of medie){ if(m >= x.km * 1000) v = x.kmh; } return v; }
+
+/* ---------- render loop ---------- */
+function loop(){
+  if(!run) return;
+  const now = performance.now(), p = run.pa;
+  const big = $('#rBig'), cap = $('#rCap'), meta = $('#rMeta');
+  if(p.type === 'tempo'){
+    const n = p.times.length;
+    $('#rSub').textContent = run.done ? 'Prova completata' : 'Tratto ' + (run.i + 1) + ' di ' + n;
+    if(!run.started){
+      big.className = 'big'; big.textContent = fmt(p.times[0]);
+      cap.textContent = 'Tempo imposto del primo tratto';
+      meta.innerHTML = '';
+    } else if(run.done){
+      const pen = run.results.reduce((s, r) => s + Math.round(Math.abs(r.delta) * 100), 0);
+      big.className = 'big ' + cls(pen / 100 / n, 0.10, 0.50);
+      big.textContent = pen;
+      cap.textContent = 'Centesimi di errore totali (stima)';
+      meta.innerHTML = '';
+    } else {
+      const target = p.times[run.i], el = (now - run.t0) / 1000, rem = target - el;
+      if(rem <= 0 && !run.vibed){ run.vibed = true; if(data.settings.vib && navigator.vibrate) navigator.vibrate(200); }
+      if(rem > 0){ big.className = 'big'; big.textContent = fmtP(rem); cap.textContent = 'Mancano al passaggio'; }
+      else { big.className = 'big ' + cls(-rem, 0.10, 0.50); big.textContent = fmtP(-rem, true); cap.textContent = 'Sei in ritardo, passa ora'; }
+      meta.innerHTML = `<div><b>${fmt(target)}</b><span>Imposto</span></div><div><b>${fmtP(el)}</b><span>Trascorso</span></div>`;
+    }
+  } else {
+    const gps = $('#rGps');
+    if(run.gpsErr){ gps.className = 'gps bad'; gps.textContent = run.gpsErr; }
+    else if(run.acc == null){ gps.className = 'gps'; gps.textContent = 'Aggancio GPS in corso…'; }
+    else { gps.className = 'gps' + (run.acc > 35 ? ' bad' : ''); gps.textContent = 'GPS ±' + Math.round(run.acc) + ' m' + (run.acc > 35 ? ', segnale debole' : ''); }
+    const medie = p.medie;
+    if(!run.started){
+      $('#rSub').textContent = 'Media imposta';
+      big.className = 'big'; big.textContent = fmtKmh(medie[0].kmh);
+      cap.textContent = 'km/h dalla partenza' + (medie.length > 1 ? ', poi ' + medie.slice(1).map(m => fmtKmh(m.kmh) + ' dal km ' + fmtKmh(m.km)).join(', ') : '');
+      meta.innerHTML = ''; setNeedle(0);
+    } else {
+      const el = run.done ? run.endEl : (now - run.t0) / 1000;
+      const d = run.done ? run.endDist : curDist(now);
+      const delta = el - idealTime(d, medie);          // + ritardo, − anticipo
+      const dm = idealDist(el, medie) - d;             // + metri dietro
+      $('#rSub').textContent = run.done ? 'Prova completata' : 'Km ' + (d / 1000).toFixed(2).replace('.', ',') + ', media ' + fmtKmh(mediaAt(d, medie)) + ' km/h';
+      big.className = 'big ' + cls(Math.abs(delta), 0.5, 2);
+      big.textContent = fmt1(delta, true);
+      cap.textContent = Math.abs(delta) < 0.05 ? 'Secondi: in perfetto orario' : delta > 0 ? 'Secondi di ritardo, accelera' : 'Secondi di anticipo, rallenta';
+      meta.innerHTML = `<div><b>${Math.round(run.speed * 3.6 * data.settings.cal / 100)}</b><span>km/h ora</span></div>
+        <div><b>${Math.abs(Math.round(dm))} m</b><span>${dm >= 0 ? 'dietro' : 'avanti'}</span></div>
+        <div><b>${fmt(el).replace(/,\d\d$/, '')}</b><span>Tempo</span></div>`;
+      setNeedle(delta);
+    }
+  }
+  raf = requestAnimationFrame(loop);
+}
+function setNeedle(delta){
+  const x = Math.max(-5, Math.min(5, delta));
+  const n = $('#rNeedle');
+  n.style.left = (50 + x * 10) + '%';
+  n.style.background = Math.abs(delta) <= 0.5 ? 'var(--accent)' : Math.abs(delta) <= 2 ? 'var(--warn)' : 'var(--bad)';
+}
+
+/* ---------- clock ---------- */
+const SEG = {P:'abefg',A:'abcefg',C:'adef',N:'abcef',O:'abcdef',D:'bcdeg',E:'adefg',F:'aefg',I:'bc',T:'defg',U:'bcdef',S:'acdfg',0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg'};
+const DW = 60, DH = 100, T = 11, G = 1.8, GAP = 12;
+function hSeg(c, x0, x1){ const h = T/2; return [[x0,c],[x0+h,c-h],[x1-h,c-h],[x1,c],[x1-h,c+h],[x0+h,c+h]]; }
+function vSeg(c, y0, y1){ const h = T/2; return [[c,y0],[c+h,y0+h],[c+h,y1-h],[c,y1],[c-h,y1-h],[c-h,y0+h]]; }
+function segShapes(){
+  const L = T/2, R = DW - T/2, TOP = T/2, MID = DH/2, BOT = DH - T/2;
+  return {a:hSeg(TOP, L+G, R-G), b:vSeg(R, TOP+G, MID-G), c:vSeg(R, MID+G, BOT-G), d:hSeg(BOT, L+G, R-G),
+          e:vSeg(L, MID+G, BOT-G), f:vSeg(L, TOP+G, MID-G), g:hSeg(MID, L+G, R-G)};
+}
+const digits = [];
+let clockLayout = '';
+function buildClock(layout){
+  if(layout === clockLayout) return; clockLayout = layout; digits.length = 0;
+  const svg = $('#clockSvg'), shapes = segShapes(), NS = 'http://www.w3.org/2000/svg';
+  let x = 0; let html = '';
+  for(const ch of layout){
+    if(ch === 'd'){
+      const id = digits.length; digits.push(null);
+      html += `<g transform="translate(${x},0)" data-d="${id}">` + Object.entries(shapes).map(([k, pts]) =>
+        `<polygon data-s="${k}" points="${pts.map(p => p.join(',')).join(' ')}"/>`).join('') + '</g>';
+      x += DW + GAP;
+    } else if(ch === ':'){
+      html += `<rect class="dot" x="${x+2}" y="${DH*0.3-5}" width="10" height="10" transform="rotate(45 ${x+7} ${DH*0.3})"/><rect class="dot" x="${x+2}" y="${DH*0.72-5}" width="10" height="10" transform="rotate(45 ${x+7} ${DH*0.72})"/>`;
+      x += 14 + GAP;
+    } else {
+      html += `<rect class="dot" x="${x+2}" y="${DH-12}" width="10" height="10" transform="rotate(45 ${x+7} ${DH-7})"/>`;
+      x += 14 + GAP;
+    }
+  }
+  svg.setAttribute('viewBox', `-4 -4 ${x - GAP + 8} ${DH + 8}`);
+  svg.innerHTML = html;
+  svg.querySelectorAll('g[data-d]').forEach(g => { digits[+g.dataset.d] = {polys:[...g.querySelectorAll('polygon')], v:-1}; });
+}
+buildClock('dd:dd:dd.ddd');
+function syncClockLayout(){ buildClock(coForced && data.settings.precision === 'cs' ? 'dd:dd:dd' : 'dd:dd:dd.ddd'); }
+function setDigit(i, n){
+  const d = digits[i]; if(d.v === n) return; d.v = n;
+  const on = SEG[n];
+  d.polys.forEach(p => p.classList.toggle('on', on.includes(p.dataset.s)));
+}
+function segSvg(str, cls){
+  const shapes = segShapes(); let x = 0, out = '';
+  for(const ch of String(str)){
+    if(ch === ':'){ out += `<rect x="${x+2}" y="${DH*0.3-5}" width="10" height="10" transform="rotate(45 ${x+7} ${DH*0.3})"/><rect x="${x+2}" y="${DH*0.72-5}" width="10" height="10" transform="rotate(45 ${x+7} ${DH*0.72})"/>`; x += 14 + GAP; continue; }
+    if(ch === ' '){ x += 30; continue; }
+    if(ch === '-'){ const w = 40; out += `<polygon points="${hSeg(DH/2, x, x+w).map(p => p.join(',')).join(' ')}"/>`; x += w + GAP; continue; }
+    const on = SEG[ch] || '';
+    out += `<g transform="translate(${x},0)">` + Object.entries(shapes).filter(([k]) => on.includes(k)).map(([k, pts]) => `<polygon points="${pts.map(p => p.join(',')).join(' ')}"/>`).join('') + '</g>';
+    x += DW + GAP;
+  }
+  const isDash = str === '-';
+  const vb = isDash ? `-2 ${DH/2 - T} ${x - GAP + 4} ${T*2}` : `-4 -4 ${x - GAP + 8} ${DH + 8}`;
+  return `<svg viewBox="${vb}"${cls ? ` class="${cls}"` : ''} aria-hidden="true">${out}</svg>`;
+}
+let tr = null;
+// ora di sistema precisa al millesimo; si riallinea da sola dopo lo stand-by (quando il timer interno si ferma)
+let timeAnchor = Date.now() - performance.now();
+function rawNow(){
+  const p = performance.now(), d = Date.now();
+  let v = timeAnchor + p;
+  if(Math.abs(v - d) > 25){ timeAnchor = d - p; v = d; }
+  return v;
+}
+function nowMs(){ return rawNow() + (data.settings.clockMs || 0); }
+document.addEventListener('visibilitychange', () => { timeAnchor = Date.now() - performance.now(); reschedAll(); });
+window.addEventListener('pageshow', () => { timeAnchor = Date.now() - performance.now(); reschedAll(); });
+function enterTraining(){
+  const st = data.settings;
+  let int = st.trInt || 5, cnt = st.trCnt || 4;
+  if(int * cnt > 55) cnt = Math.max(1, Math.floor(55 / int));
+  tr = {int, cnt, next:-1, cycleKey:null, res:{}, shown:null, vib:-1};
+  tr.targets = Array.from({length: cnt + 1}, (_, i) => i * int);
+  ensureAudio();
+  $('#train').hidden = false;
+  $('#tmsg').textContent = 'Tocca lo schermo a ogni passaggio';
+  keepAwake(); trainLoop();
+}
+function exitTraining(){ if(!tr) return; clearBeeps(true); tr = null; $('#train').hidden = true; }
+function trainState(t){
+  const inMin = ((t % 60000) + 60000) % 60000;
+  let idx = tr.targets.findIndex(x => x * 1000 > inMin);
+  let T = idx >= 0 ? tr.targets[idx] * 1000 : 60000;
+  if(idx < 0) idx = 0;
+  const seg = idx === 0 ? 60 - tr.targets[tr.cnt] : tr.int;
+  return {inMin, idx, rem:(T - inMin) / 1000, seg};
+}
+function renderRow(){
+  $('#trow').innerHTML = tr.targets.map((t, i) => {
+    const c = i === tr.next ? 'cur' : (tr.next > 0 && i < tr.next) ? 'done' : '';
+    return (i ? segSvg('-', 'dash') : '') + segSvg(t, c);
+  }).join('');
+}
+function setBig(v, bad){
+  const k = v + (bad ? 'b' : '');
+  if(tr.shown === k) return; tr.shown = k;
+  const n = $('#tnum'); n.innerHTML = segSvg(v); n.classList.toggle('bad', !!bad);
+}
+function mix(a, b, k){ return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',') + ')'; }
+function setRing(frac, c){
+  const p = $('#tprog');
+  p.style.strokeDashoffset = String(100 - Math.max(0, Math.min(1, frac)) * 100);
+  p.setAttribute('class', 'prog' + (c ? ' ' + c : ''));
+}
+function trainTap(){
+  if(!tr) return;
+  ensureAudio();
+  const t = nowMs(), inMin = ((t % 60000) + 60000) % 60000;
+  // passaggio più vicino, contando anche lo zero del minuto successivo
+  let best = 0, bestD = Infinity;
+  tr.targets.concat([60]).forEach((x, i) => { const d = inMin - x * 1000; if(Math.abs(d) < Math.abs(bestD)){ bestD = d; best = i; } });
+  const idx = best > tr.cnt ? 0 : best;
+  if(idx === 0) tr.res = {};
+  tr.res[idx] = bestD / 1000;
+  click(); showRes();
+}
+function showRes(){
+  const keys = Object.keys(tr.res).map(Number).sort((a, b) => a - b);
+  let msg = keys.map(i => { const d = tr.res[i]; return `<span class="${cls(Math.abs(d), 0.10, 0.50)}">${tr.targets[i]}″ <b>${fmtP(d, true)}</b></span>`; }).join('&nbsp;&nbsp; ');
+  if(keys.length === tr.targets.length){
+    const tot = keys.reduce((s, i) => s + Math.round(Math.abs(tr.res[i]) * 100), 0);
+    msg += `<br>Totale giro <b>${tot}</b> centesimi`;
+  }
+  $('#tmsg').innerHTML = msg || 'Tocca lo schermo a ogni passaggio';
+}
+function trainLoop(){
+  if(!tr) return;
+  const st = trainState(nowMs());
+  if(st.idx !== tr.next){
+    tr.next = st.idx; renderRow();
+    if(tr.vib !== -1 && data.settings.vib && navigator.vibrate) navigator.vibrate(120);
+    tr.vib = st.idx;
+  }
+  maybeSchedule(tr, Math.round((nowMs() + st.rem * 1000) / 100), st.rem);
+  setBig(String(Math.max(1, Math.ceil(st.rem - 1e-9))), false);
+  // colore: verde fino a 4 s, sfuma linearmente in rosso tra 4 e 3 s, rosso da 3 s
+  const stE = lagS() ? trainState(nowMs() - lagS() * 1000) : st;
+  { const inMin = st.inMin; let last = null;
+    tr.targets.forEach(x => { if(x * 1000 <= inMin) last = x * 1000; });
+    const since = last == null ? (inMin + 60000 - tr.targets[tr.cnt] * 1000) / 1000 : (inMin - last) / 1000;
+    flashTicks('#train .ring', st.rem, since); } // anello spostato del ritardo, numero sul tempo vero
+  const k = Math.max(0, Math.min(1, 4 - stE.rem));
+  const tf = stE.rem > 5 ? 0 : stE.rem / 5; // l'anello parte solo negli ultimi 5 secondi
+  setRing(tf, '');
+  $('#tprog').style.opacity = tf > 0 ? '1' : '0';
+  $('#tprog').style.stroke = mix([47,138,63], [214,48,38], k);
+  $('#tprog').previousElementSibling.style.stroke = mix([25,56,29], [74,22,20], k);
+  requestAnimationFrame(trainLoop);
+}
+$('#train').addEventListener('pointerdown', e => { e.preventDefault(); trainTap(); });
+document.addEventListener('keydown', e => {
+  if(!$('#copan').hidden && [' ', 'Enter'].includes(e.key)){ e.preventDefault(); coTap(); return; }
+  if(!tr || !$('#clock').classList.contains('on')) return;
+  if([' ', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'MediaPlayPause'].includes(e.key)){ e.preventDefault(); trainTap(); }
+});
+/* ---------- PA impostate: conto alla rovescia automatico ---------- */
+const coState = {key:null, num:null, cur:null, nxt:null, gap:null, sched:null};
+function p2(n){ return String(n).padStart(2,'0'); }
+function coList(t){
+  const d = new Date(t); d.setHours(0,0,0,0);
+  return (data.settings.co || []).map((c, i) => c ? {i, t: d.getTime() + (c.h*3600 + c.m*60 + c.s) * 1000, c} : null).filter(Boolean);
+}
+function coLabel(x){ return 'PA' + (x.i + 1) + ': ' + p2(x.c.h) + ':' + p2(x.c.m) + ':' + p2(x.c.s); }
+function setHTML(el, key, html){ if(coState[key] === html) return; coState[key] = html; el.innerHTML = html; }
+let coForced = false;
+function coSlots(t){
+  const d = new Date(t); d.setHours(0,0,0,0);
+  const raw = data.settings.co || [];
+  return Array.from({length: Math.max(raw.length, 1)}, (_, i) => raw[i] ? {i, t: d.getTime() + (raw[i].h*3600 + raw[i].m*60 + raw[i].s) * 1000, c: raw[i]} : {i, t: null});
+}
+function updateCO(){
+  const pan = $('#copan');
+  const otherMode = tr || !$('#syncp').hidden || !$('#setp').hidden || document.body.classList.contains('timeonly');
+  const t = nowMs(), slots = coSlots(t), list = slots.filter(x => x.t != null);
+  // posizione attuale: primo slot dopo l'ultima PA già passata
+  let lastPassed = -1; slots.forEach(x => { if(x.t != null && x.t <= t) lastPassed = x.i; });
+  let cur = slots.find(x => x.i > lastPassed) || null;
+  const allDone = list.length > 0 && !list.some(x => x.t > t);
+  if(otherMode || (!allDone && ((!cur && !coForced) || (!list.some(x => x.t > t) && !coForced)))){
+    if(!pan.hidden){ pan.hidden = true; clearBeeps(true); coState.sched = null; } return;
+  }
+  pan.hidden = false;
+  if(allDone){
+    // tutte le PA passate: schermata di fine
+    $('#coRow').hidden = true; $('#coCur').hidden = false;
+    setHTML($('#coCur'), 'cur', segSvg('NO SET'));
+    setHTML($('#coNum'), 'num', segSvg('0'));
+    setHTML($('#coGap'), 'gap', ''); setHTML($('#coNext'), 'nxt', ''); coState.row = null;
+    const rE = coRemEff(list, t);
+    const f = rE != null && rE <= 5 ? rE / 5 : 0, kk = rE != null ? Math.max(0, Math.min(1, 4 - rE)) : 0;
+    $('#coprog').style.strokeDashoffset = String(100 - f * 100);
+    $('#coprog').style.opacity = f > 0 ? '1' : '0';
+    $('#coprog').style.stroke = mix([47,138,63], [214,48,38], kk);
+    $('#cotrack').style.stroke = mix([25,56,29], [74,22,20], kk);
+    flashTicks('#copan .ring', null, (t - list[list.length - 1].t) / 1000);
+    if(coState.sched !== 'none'){ clearBeeps(); coState.sched = 'none'; }
+    return;
+  }
+  const secMode = coForced && data.settings.precision === 's';
+  $('#coRow').hidden = !secMode; $('#coCur').hidden = secMode;
+  if(secMode){
+    const fut = list.filter(x => x.t > t).slice(0, 8);
+    const c0 = fut[0];
+    const rem0 = c0 ? (c0.t - t) / 1000 : 0;
+    const vals = c0 ? [Math.max(0, Math.ceil(rem0 - 1e-9))].concat(fut.slice(1).map((x, j) => Math.round((x.t - fut[j].t) / 1000))) : [0];
+    $('#coRow').classList.toggle('many', vals.length > 5);
+    setHTML($('#coRow'), 'row', vals.map((v, i) => (i ? segSvg('-', 'dash') : '') + segSvg(String(v), i === 0 ? 'cur' : '')).join(''));
+    setHTML($('#coGap'), 'gap', ''); setHTML($('#coNext'), 'nxt', '');
+    setHTML($('#coNum'), 'num', segSvg(String(c0 ? Math.max(0, Math.ceil(rem0 - 1e-9)) : 0)));
+    const rE = coRemEff(list, t);
+    const f = rE != null && rE <= 5 ? rE / 5 : 0, kk = rE != null ? Math.max(0, Math.min(1, 4 - rE)) : 0;
+    $('#coprog').style.strokeDashoffset = String(100 - f * 100);
+    $('#coprog').style.opacity = f > 0 ? '1' : '0';
+    $('#coprog').style.stroke = mix([47,138,63], [214,48,38], kk);
+    $('#cotrack').style.stroke = mix([25,56,29], [74,22,20], kk);
+    { const past = list.filter(x => x.t <= t); flashTicks('#copan .ring', c0 ? rem0 : null, past.length ? (t - past[past.length - 1].t) / 1000 : null); }
+    if(!c0){ if(coState.sched !== 'none'){ clearBeeps(); coState.sched = 'none'; } }
+    else maybeSchedule(coState, c0.t, rem0);
+    return;
+  }
+  if(!cur || cur.t == null){
+    const nxt0 = cur ? slots.find(x => x.i > cur.i && x.t != null && x.t > t) : null;
+    setHTML($('#coCur'), 'cur', segSvg('NO SET'));
+    setHTML($('#coNum'), 'num', segSvg('0'));
+    setHTML($('#coGap'), 'gap', '');
+    setHTML($('#coNext'), 'nxt', nxt0 ? segSvg(coLabel(nxt0)) : '');
+    $('#coprog').style.opacity = '0';
+    $('#coprog').style.stroke = mix([47,138,63], [214,48,38], 0);
+    $('#cotrack').style.stroke = mix([25,56,29], [74,22,20], 0);
+    if(coState.sched !== 'none'){ clearBeeps(); coState.sched = 'none'; }
+    return;
+  }
+  const k = list.indexOf(cur);
+  const nxt = list[k + 1];
+  const rem = (cur.t - t) / 1000;
+  setHTML($('#coCur'), 'cur', segSvg(coLabel(cur)));
+  setHTML($('#coNext'), 'nxt', nxt ? segSvg(coLabel(nxt)) : '');
+  setHTML($('#coGap'), 'gap', nxt ? segSvg(String(Math.round((nxt.t - cur.t) / 1000))) : '');
+  // cifre centrali
+  const whole = Math.max(0, Math.ceil(rem - 1e-9));
+  setHTML($('#coNum'), 'num', segSvg(String(whole)));
+  // anello: fermo fino a 5 s, poi si svuota; verde che sfuma in rosso tra 4 e 3 s
+  const win = 5; // l'anello parte solo negli ultimi 5 secondi
+  const remE = coRemEff(list, t) ?? rem;
+  const frac = remE > win ? 0 : remE / win;
+  $('#coprog').style.strokeDashoffset = String(100 - frac * 100);
+  $('#coprog').style.opacity = frac > 0 ? '1' : '0';
+  const kk = Math.max(0, Math.min(1, 4 - remE));
+  $('#coprog').style.stroke = mix([47,138,63], [214,48,38], kk);
+  $('#cotrack').style.stroke = mix([25,56,29], [74,22,20], kk);
+  { const past = list.filter(x => x.t <= t); flashTicks('#copan .ring', rem, past.length ? (t - past[past.length - 1].t) / 1000 : null); }
+  // bip
+  maybeSchedule(coState, cur.t, rem);
+}
+function coTap(){
+  ensureAudio();
+  const t = nowMs(), list = coList(t); if(!list.length) return;
+  let best = list[0];
+  list.forEach(x => { if(Math.abs(t - x.t) < Math.abs(t - best.t)) best = x; });
+  const d = (t - best.t) / 1000;
+  if(Math.abs(d) > 30) return;
+  click();
+  $('#coMsg').innerHTML = `<span class="${cls(Math.abs(d), 0.10, 0.50)}">PA${best.i + 1} <b>${fmtP(d, true)}</b></span>`;
+}
+$('#copan').addEventListener('pointerdown', e => { e.preventDefault(); coTap(); });
+document.addEventListener('pointerdown', () => { const was = ac && ac.state === 'running'; ensureAudio(); if(!was) reschedAll(); }, true);
+function lagS(){ const n = (data.settings.passRit || 0) - (data.settings.passAnt || 0); return n > 0 ? n / 100 : 0; }
+function coRemEff(list, t){ const te = t - lagS() * 1000; const x = list.find(y => y.t > te); return x ? (x.t - te) / 1000 : null; }
+const FLASH = 0.2; // secondi in cui la tacca resta gialla dopo il passaggio della barra
+function flashTicks(ringSel, remNext, sincePrev){
+  const n = ((data.settings.passAnt || 0) - (data.settings.passRit || 0)) / 100;
+  const zeroHit = sincePrev != null && sincePrev >= 0 && sincePrev < FLASH;
+  let tickHit = false;
+  if(n > 0 && remNext != null) tickHit = remNext <= n && remNext > n - FLASH;
+  if(n < 0 && sincePrev != null) tickHit = sincePrev >= -n && sincePrev < -n + FLASH;
+  const r = document.querySelector(ringSel);
+  r.querySelector('.zero').classList.toggle('hit', zeroHit);
+  r.querySelector('.tick').classList.toggle('hit', tickHit);
+}
+function placeTicks(){
+  const cs = data.settings.passCs || 0;
+  // l'arco parte dalla cima e ogni secondo vale 1/5 di giro: la tacca sta dove sarà la barra a quell'anticipo
+  const deg = (cs / 100) / 5 * 360;
+  // con il ritardo l'anello finisce sulla tacca: ruoto il punto d'arrivo della barra
+  const rd = -lagS() / 5 * 360;
+  ['#tprog', '#coprog'].forEach(id => { const c = document.querySelector(id); if(c) c.setAttribute('transform', `rotate(${rd} 50 50)`); });
+  document.querySelectorAll('.ring .tick').forEach(l => { l.setAttribute('transform', `rotate(${deg} 50 50)`); if(cs) l.removeAttribute('hidden'); else l.setAttribute('hidden', ''); });
+}
+placeTicks();
+let clockRaf = 0;
+function tickClock(){
+  const t = new Date(nowMs());
+  const s = String(t.getHours()).padStart(2,'0') + String(t.getMinutes()).padStart(2,'0') + String(t.getSeconds()).padStart(2,'0') + String(t.getMilliseconds()).padStart(3,'0');
+  syncClockLayout();
+  for(let i = 0; i < digits.length; i++) setDigit(i, +s[i]);
+  updateCO();
+  clockRaf = requestAnimationFrame(tickClock);
+}
+function goClock(){
+  closeMenu(); show('clock');
+  goClockNote();
+  cancelAnimationFrame(clockRaf); tickClock(); keepAwake();
+}
+const PREC_LABEL = {s:'secondi', cs:'centesimi', ms:'millesimi'};
+function openMenu(){ $('#dialmenu').classList.add('on'); $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); }
+function closeMenu(){ $('#dialmenu').classList.remove('on'); $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
+$('#fab').onclick = () => $('#dialmenu').classList.contains('on') ? closeMenu() : openMenu();
+function openList(){
+  renderList();
+  $('#home h1').innerHTML = 'Le mie PA<small>Cronometro in ' + PREC_LABEL[data.settings.precision || 'cs'] + '. Tocca Via per partire</small>';
+  show('home');
+}
+/* ricorda la schermata aperta: se la pagina viene ricaricata, riapre la stessa */
+function saveMode(m){ try{ localStorage.setItem(KEY + '-mode', m); }catch(e){} }
+function loadMode(){ try{ return localStorage.getItem(KEY + '-mode') || 'clock'; }catch(e){ return 'clock'; } }
+$('#dialmenu').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  closeMenu();
+  doMenu(b.dataset.m);
+});
+function doMenu(m){
+  saveMode(m === 'set' ? 'settings' : m);
+  if(!m.startsWith('run-')) coForced = false;
+  if(m !== 'train') exitTraining();
+  if(m !== 'sync') exitSync();
+  if(m !== 'pas') exitSet();
+  if(m === 'train') exitSync();
+  if(m === 'set') openSettings();
+  if(m === 'pas'){ exitTraining(); exitSync(); enterSet(); }
+  if(m.startsWith('run-')){ data.settings.precision = m.slice(4); save(); exitTraining(); exitSync(); exitSet(); coForced = true; show('clock'); coState.cur = coState.nxt = coState.gap = coState.num = coState.row = null; coState.sched = null; }
+  if(m === 'sync'){ exitTraining(); exitSet(); enterSync(); }
+  if(m === 'train'){ exitSet(); enterTraining(); return; }
+  if(m === 'only'){
+    document.body.classList.add('timeonly');
+    try{ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }catch(err){}
+    $('#clockNote').textContent = 'Tocca lo schermo per riavere il menu';
+    setTimeout(() => { if(document.body.classList.contains('timeonly')) goClockNote(); }, 3000);
+  }
+}
+$('#clock').addEventListener('click', e => {
+  if(document.body.classList.contains('timeonly') && !e.target.closest('.fab')){
+    document.body.classList.remove('timeonly');
+    try{ document.fullscreenElement && document.exitFullscreen(); }catch(err){}
+    goClockNote(); saveMode('clock');
+  } else if($('#dialmenu').classList.contains('on') && !e.target.closest('.dialmenu,.fab')) closeMenu();
+});
+function offText(ms){
+  const neg = ms < 0, a = Math.abs(ms);
+  const min = Math.floor(a / 60000), sec = (a - min * 60000) / 1000;
+  const secStr = Number.isInteger(sec) ? String(sec) : sec.toFixed(3).replace('.', ',');
+  return 'Modificato di: ' + (neg ? '−' : '') + min + (min === 1 ? ' minuto' : ' minuti') + ' e ' + secStr + (sec === 1 ? ' secondo' : ' secondi');
+}
+function enterSync(){ $('#syncp').hidden = false; $('#clockNote').style.visibility = 'hidden'; $('#offTxt').textContent = offText(data.settings.clockMs || 0); keepAwake(); }
+function exitSync(){ $('#syncp').hidden = true; $('#clockNote').style.visibility = ''; }
+$('#sgrid').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  data.settings.clockMs = (data.settings.clockMs || 0) + parseInt(b.dataset.ms, 10);
+  save(); $('#offTxt').textContent = offText(data.settings.clockMs); goClockNote();
+  if(navigator.vibrate) navigator.vibrate(15);
+});
+const coInputs = () => [...document.querySelectorAll('#corows .corow')].map(r => ({h:r.querySelector('[data-k=h]'), m:r.querySelector('[data-k=m]'), s:r.querySelector('[data-k=s]')}));
+function updCnt(inp){ inp.nextElementSibling.textContent = inp.value.length + '/2'; }
+function enterSet(){
+  const co = data.settings.co || [];
+  coInputs().forEach((r, i) => {
+    const c = co[i];
+    ['h','m','s'].forEach(k => { r[k].value = c ? String(c[k]).padStart(2,'0') : ''; r[k].classList.remove('errf'); updCnt(r[k]); });
+  });
+  try{ const dr = JSON.parse(localStorage.getItem(KEY + '-draft') || 'null');
+    if(dr) coInputs().forEach((r, i) => ['h','m','s'].forEach(k => { if(dr[i] && dr[i][k] != null){ r[k].value = dr[i][k]; updCnt(r[k]); } })); }catch(e){}
+  $('#coErr').textContent = '';
+  $('#setp').hidden = false; $('#clockNote').style.visibility = 'hidden';
+}
+function saveDraft(){ try{ localStorage.setItem(KEY + '-draft', JSON.stringify(coInputs().map(r => ({h:r.h.value, m:r.m.value, s:r.s.value})))); }catch(e){} }
+function exitSet(){ $('#setp').hidden = true; if($('#syncp').hidden) $('#clockNote').style.visibility = ''; }
+$('#corows').addEventListener('input', e => {
+  const inp = e.target; if(inp.tagName !== 'INPUT') return;
+  inp.value = inp.value.replace(/\D/g, '').slice(0, 2); inp.classList.remove('errf'); updCnt(inp);
+  saveDraft();
+  if(inp.value.length === 2){
+    const all = [...document.querySelectorAll('#corows input')], i = all.indexOf(inp);
+    if(all[i + 1]) all[i + 1].focus();
+  }
+});
+$('#corows').addEventListener('focusin', e => { if(e.target.tagName === 'INPUT') e.target.select(); });
+$('#coClear').onclick = () => {
+  coInputs().forEach(r => ['h','m','s'].forEach(k => { r[k].value = ''; r[k].classList.remove('errf'); updCnt(r[k]); }));
+  $('#coErr').textContent = ''; saveDraft();
+};
+let coLast = null;
+$('#corows').addEventListener('focusin', e => { if(e.target.tagName === 'INPUT') coLast = e.target; });
+$('#coDel').addEventListener('pointerdown', e => e.preventDefault());
+$('#coDel').onclick = () => {
+  if(!coLast){ $('#coErr').textContent = 'Tocca prima la casella da cancellare.'; return; }
+  coLast.value = ''; coLast.classList.remove('errf'); updCnt(coLast);
+  $('#coErr').textContent = ''; saveDraft(); coLast.focus();
+};
+$('#coOk').onclick = () => {
+  const out = []; let bad = false;
+  coInputs().forEach(r => {
+    const v = {h:r.h.value, m:r.m.value, s:r.s.value};
+    const filled = ['h','m','s'].filter(k => v[k] !== '');
+    if(!filled.length){ out.push(null); return; }
+    const lim = {h:23, m:59, s:59}; let ok = true;
+    ['h','m','s'].forEach(k => {
+      const n = parseInt(v[k], 10);
+      const good = v[k] !== '' && n >= 0 && n <= lim[k];
+      r[k].classList.toggle('errf', !good); if(!good) ok = false;
+    });
+    if(!ok){ bad = true; out.push(null); return; }
+    out.push({h:+v.h, m:+v.m, s:+v.s});
+  });
+  if(bad){ $('#coErr').textContent = 'Controlla i campi in rosso: ore 00–23, minuti e secondi 00–59.'; return; }
+  while(out.length && out[out.length - 1] === null) out.pop();
+  data.settings.co = out; save();
+  exitSet(); goClockNote(); saveMode('clock'); try{ localStorage.removeItem(KEY + '-draft'); }catch(e){}
+  if(navigator.vibrate) navigator.vibrate(40);
+};
+function goClockNote(){
+  const ms = data.settings.clockMs || 0;
+  $('#clockNote').textContent = ms ? 'Correzione orologio ' + (ms > 0 ? '+' : '−') + (Math.abs(ms) / 1000).toFixed(3).replace('.', ',') + ' s' : '';
+}
+
+document.querySelectorAll('[data-toclock]').forEach(b => b.onclick = goClock);
+
+renderList();
+goClock();
+(function restore(){
+  const m = loadMode();
+  if(m === 'settings') openSettings();
+  else if(m && m !== 'clock') doMenu(m);
+})();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
+</script>
+</body>
+</html>
