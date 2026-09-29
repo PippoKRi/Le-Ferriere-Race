@@ -408,11 +408,10 @@ html.bgw .ring .tick.hit{stroke:#FFD400}
 <section class="view" id="settings">
   <div class="top"><h1>Impostazioni</h1></div>
   <div class="scroll"><div class="wrap">
-    <label class="f" for="sTrInt">Allenamento: secondi tra un passaggio e l'altro</label>
-    <input type="number" id="sTrInt" min="1" max="99" step="1" inputmode="numeric">
-    <div class="hint">Lo zero cade sempre allo scoccare del minuto. Con 5 secondi e 4 passaggi: :00, :05, :10, :15, :20, poi 40 secondi di attesa e si ricomincia da solo.</div>
-    <label class="f" for="sTrCnt">Allenamento: numero di passaggi dopo lo zero</label>
-    <input type="number" id="sTrCnt" min="1" max="8" step="1" inputmode="numeric">
+    <label class="f" for="sTrSeq">Allenamento: sequenza PA</label>
+    <input type="text" id="sTrSeq" autocomplete="off" placeholder="0 5 5 5 5">
+    <div class="hint">(esempio: 0 4 6 5 8 fino a max 8 PA)</div>
+    <div class="err" id="sTrErr"></div>
     <label class="f" for="sAnt">Anticipo al passaggio, in centesimi</label>
     <input type="number" id="sAnt" min="0" max="100" step="1" inputmode="numeric" placeholder="0">
     <label class="f" for="sRit">Ritardo al passaggio, in centesimi</label>
@@ -421,6 +420,9 @@ html.bgw .ring .tick.hit{stroke:#FFD400}
     <label class="f" for="sBeeps">Bip di conto alla rovescia</label>
     <input type="number" id="sBeeps" min="0" max="10" step="1" inputmode="numeric">
     <div class="hint">Quanti bip brevi prima dello zero (uno al secondo).</div>
+    <label class="f">Esaurimento barra luminosa</label>
+    <div class="seg" id="sBar"><button data-v="2s">2 Secondi</button><button data-v="always">Sempre</button></div>
+    <div class="hint">2 Secondi: la barra resta piena e negli ultimi 2 secondi diventa rossa e si esaurisce. Sempre: prima della PA1 la barra si consuma negli ultimi 10 secondi; tra una PA e l'altra si consuma per tutto il tratto. Negli ultimi 2 secondi diventa rossa senza ripartire.</div>
     <label class="f">Sfondo</label>
     <div class="seg" id="sBg"><button data-v="black">Nero</button><button data-v="white">Bianco</button></div>
     <div class="hint">Con lo sfondo bianco i numeri diventano neri: utile sotto il sole.</div>
@@ -462,7 +464,7 @@ const $ = s => document.querySelector(s);
 const KEY = 'regolarita-vespa-v1';
 
 /* ---------- storage ---------- */
-let data = {pas:[], settings:{beeps:5, offsetCs:0, cal:100, vib:true, clockMs:0, precision:'cs', trInt:5, trCnt:4}};
+let data = {pas:[], settings:{beeps:5, offsetCs:0, cal:100, vib:true, clockMs:0, precision:'cs', trInt:5, trCnt:4, trSeq:null}};
 try{
   const raw = localStorage.getItem(KEY);
   if(raw){ const d = JSON.parse(raw); if(d && Array.isArray(d.pas)) data = {pas:d.pas, settings:Object.assign(data.settings, d.settings||{})}; }
@@ -572,6 +574,8 @@ $('#fSave').onclick = () => {
 
 /* ---------- settings ---------- */
 function applyBg(){ document.documentElement.classList.toggle('bgw', data.settings.bg === 'white'); }
+function setBarSeg(v){ document.querySelectorAll('#sBar button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+$('#sBar').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setBarSeg(b.dataset.v); });
 function setBgSeg(v){ document.querySelectorAll('#sBg button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
 $('#sBg').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setBgSeg(b.dataset.v); });
 applyBg();
@@ -579,25 +583,45 @@ function setZeroSeg(on){ document.querySelectorAll('#sZero button').forEach(b =>
 $('#sZero').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setZeroSeg(b.dataset.v === '1'); });
 function openSettings(){
   const s = data.settings;
-  $('#sAnt').value = s.passAnt || ''; $('#sRit').value = s.passRit || ''; $('#sTrInt').value = s.trInt || 5; $('#sTrCnt').value = s.trCnt || 4; $('#sBeeps').value = s.beeps; setZeroSeg(s.zeroBeep !== false); setBgSeg(s.bg === 'white' ? 'white' : 'black'); $('#sVib').checked = s.vib;
+  $('#sAnt').value = s.passAnt || ''; $('#sRit').value = s.passRit || ''; $('#sTrSeq').value = '0 ' + trSeqOf(s).join(' '); $('#sTrErr').textContent = ''; $('#sBeeps').value = s.beeps; setZeroSeg(s.zeroBeep !== false); setBgSeg(s.bg === 'white' ? 'white' : 'black'); setBarSeg(s.barMode === 'always' ? 'always' : '2s'); $('#sVib').checked = s.vib;
   show('settings');
 }
 $('#toSettings').onclick = openSettings;
 $('#sCancel').onclick = () => { saveMode('clock'); goClock(); };
+// sequenza allenamento: "0 4 6 5" -> tratti [4,6,5]
+function trSeqOf(st){
+  if(Array.isArray(st.trSeq) && st.trSeq.length) return st.trSeq;
+  const int = st.trInt || 5; let cnt = st.trCnt || 4; if(int * cnt > 55) cnt = Math.max(1, Math.floor(55 / int));
+  return Array.from({length: cnt}, () => int);
+}
+function parseTrSeq(txt){
+  const parts = String(txt).trim().split(/[\s,;\-–]+/).filter(Boolean);
+  const nums = parts.map(x => Number(x.replace(',', '.')));
+  if(!nums.length || nums.some(n => !Number.isFinite(n))) return {err: 'Scrivi solo numeri separati da uno spazio (esempio: 0 4 6 5 8).'};
+  if(nums[0] === 0) nums.shift(); // lo 0 iniziale è lo scoccare del minuto
+  if(!nums.length) return {err: 'Dopo lo 0 scrivi almeno un tratto (esempio: 0 4 6 5 8).'};
+  if(nums.some(n => n <= 0 || !Number.isInteger(n))) return {err: 'Ogni tratto deve essere un numero intero di secondi maggiore di 0.'};
+  if(nums.length > 7) return {err: 'Al massimo 8 PA, compreso lo 0.'};
+  const tot = nums.reduce((a, b) => a + b, 0);
+  if(tot > 55) return {err: 'La sequenza dura ' + tot + ' secondi: il totale deve essere al massimo 55.'};
+  return {seq: nums};
+}
 $('#sSave').onclick = () => {
   const s = data.settings;
+  const ps = parseTrSeq($('#sTrSeq').value);
+  if(ps.err){ $('#sTrErr').textContent = ps.err; $('#sTrSeq').focus(); return; }
+  s.trSeq = ps.seq; $('#sTrErr').textContent = '';
   s.beeps = Math.max(0, Math.min(10, parseInt($('#sBeeps').value,10) || 0));
   s.offsetCs = 0;
   s.zeroBeep = $('#sZero .on') ? $('#sZero .on').dataset.v === '1' : true;
   s.bg = $('#sBg .on') ? $('#sBg .on').dataset.v : 'black';
+  s.barMode = $('#sBar .on') ? $('#sBar .on').dataset.v : '2s';
   applyBg();
   s.vib = $('#sVib').checked;
   s.passAnt = Math.max(0, Math.min(100, Math.round(Math.abs(num($('#sAnt').value)) || 0)));
   s.passRit = Math.max(0, Math.min(100, Math.round(Math.abs(num($('#sRit').value)) || 0)));
   s.passCs = s.passAnt - s.passRit;
   placeTicks();
-  s.trInt = Math.max(1, Math.min(99, parseInt($('#sTrInt').value,10) || 5));
-  s.trCnt = Math.max(1, Math.min(8, parseInt($('#sTrCnt').value,10) || 4));
   save(); saveMode('clock'); goClock();
 };
 
@@ -962,10 +986,9 @@ document.addEventListener('visibilitychange', () => { timeAnchor = Date.now() - 
 window.addEventListener('pageshow', () => { timeAnchor = Date.now() - performance.now(); reschedAll(); });
 function enterTraining(){
   const st = data.settings;
-  let int = st.trInt || 5, cnt = st.trCnt || 4;
-  if(int * cnt > 55) cnt = Math.max(1, Math.floor(55 / int));
-  tr = {int, cnt, next:-1, cycleKey:null, res:{}, shown:null, vib:-1};
-  tr.targets = Array.from({length: cnt + 1}, (_, i) => i * int);
+  const seq = trSeqOf(st), cnt = seq.length;
+  tr = {cnt, next:-1, cycleKey:null, res:{}, shown:null, vib:-1};
+  tr.targets = [0]; seq.forEach(v => tr.targets.push(tr.targets[tr.targets.length - 1] + v));
   ensureAudio();
   $('#train').hidden = false;
   $('#tmsg').textContent = 'Tocca lo schermo a ogni passaggio';
@@ -977,7 +1000,7 @@ function trainState(t){
   let idx = tr.targets.findIndex(x => x * 1000 > inMin);
   let T = idx >= 0 ? tr.targets[idx] * 1000 : 60000;
   if(idx < 0) idx = 0;
-  const seg = idx === 0 ? 60 - tr.targets[tr.cnt] : tr.int;
+  const seg = idx === 0 ? 60 - tr.targets[tr.cnt] : tr.targets[idx] - tr.targets[idx - 1];
   return {inMin, idx, rem:(T - inMin) / 1000, seg};
 }
 function renderRow(){
@@ -993,8 +1016,23 @@ function setBig(v, bad){
 }
 /* anello in stile Buraz: verde pieno e fermo da 5 a 2 s, poi rosso che si esaurisce in esattamente 2 s */
 const RED_S = 2, GREEN_S = 3;
-function paintRing(prog, track, remE){
+const ALWAYS_MAX = 10;
+function paintRing(prog, track, remE, seg){
   let frac = 0, red = false;
+  const always = data.settings.barMode === 'always';
+  if(always){
+    // "Sempre": la barra si consuma su tutto l'intervallo fino alla PA; negli ultimi 2 s diventa rossa e prosegue dallo stesso punto
+    if(remE != null && remE > 0){
+      const win = seg > 0 ? seg : ALWAYS_MAX; // tratto intero dalla PA precedente; prima della PA1 gli ultimi 10 secondi
+      frac = Math.min(1, remE / win);
+      red = remE <= RED_S;
+    }
+    prog.style.strokeDashoffset = String(100 - Math.max(0, Math.min(1, frac)) * 100);
+    prog.style.opacity = frac > 0 ? '1' : '0';
+    prog.style.stroke = red ? 'rgb(214,48,38)' : 'rgb(47,138,63)';
+    track.style.stroke = red ? 'rgb(74,22,20)' : 'rgb(26,58,31)'; // parte già consumata più scura, per vedere la barra che cala
+    return;
+  }
   if(remE != null && remE > 0 && remE <= RED_S + GREEN_S){
     if(remE > RED_S) frac = 1; // verde pieno e fermo da 5 a 2 secondi
     else { frac = remE / RED_S; red = true; }
@@ -1048,7 +1086,7 @@ function trainLoop(){
     const since = last == null ? (inMin + 60000 - tr.targets[tr.cnt] * 1000) / 1000 : (inMin - last) / 1000;
     flashTicks('#train .ring', st.rem, since); } // anello spostato del ritardo, numero sul tempo vero
   $('#tprog').setAttribute('class', 'prog');
-  paintRing($('#tprog'), $('#tprog').previousElementSibling, stE.rem);
+  paintRing($('#tprog'), $('#tprog').previousElementSibling, stE.rem, stE.idx === 0 ? ALWAYS_MAX : stE.seg); // prima dello zero: ultimi 10 s
   trRaf = requestAnimationFrame(trainLoop);
 }
 $('#train').addEventListener('pointerdown', e => { e.preventDefault(); trainTap(); });
@@ -1107,7 +1145,7 @@ function updateCO(){
     setHTML($('#coNum'), 'num', segSvg('0'));
     setHTML($('#coGap'), 'gap', ''); setHTML($('#coNext'), 'nxt', ''); coState.row = null;
     const rE = coRemEff(list, t);
-    paintRing($('#coprog'), $('#cotrack'), rE);
+    paintRing($('#coprog'), $('#cotrack'), rE, coSegEff(list, t));
     flashTicks('#copan .ring', null, (t - list[list.length - 1].t) / 1000);
     if(coState.sched !== 'none'){ clearBeeps(); coState.sched = 'none'; }
     return;
@@ -1124,7 +1162,7 @@ function updateCO(){
     setHTML($('#coGap'), 'gap', ''); setHTML($('#coNext'), 'nxt', '');
     setHTML($('#coNum'), 'num', segSvg(fmtCount(c0 ? Math.max(0, Math.ceil(rem0 - 1e-9)) : 0)));
     const rE = coRemEff(list, t);
-    paintRing($('#coprog'), $('#cotrack'), rE);
+    paintRing($('#coprog'), $('#cotrack'), rE, coSegEff(list, t));
     { const past = list.filter(x => x.t <= t); flashTicks('#copan .ring', c0 ? rem0 : null, past.length ? (t - past[past.length - 1].t) / 1000 : null); }
     if(!c0){ if(coState.sched !== 'none'){ clearBeeps(); coState.sched = 'none'; } }
     else maybeSchedule(coState, c0.t, rem0);
@@ -1154,7 +1192,7 @@ function updateCO(){
   // anello: fermo fino a 5 s, poi si svuota; verde che sfuma in rosso tra 4 e 3 s
   const win = 5; // l'anello parte solo negli ultimi 5 secondi
   const remE = coRemEff(list, t) ?? rem;
-  paintRing($('#coprog'), $('#cotrack'), remE);
+  paintRing($('#coprog'), $('#cotrack'), remE, coSegEff(list, t));
   { const past = list.filter(x => x.t <= t); flashTicks('#copan .ring', rem, past.length ? (t - past[past.length - 1].t) / 1000 : null); }
   // bip
   maybeSchedule(coState, cur.t, rem);
@@ -1174,6 +1212,12 @@ document.addEventListener('pointerdown', () => { const was = ac && ac.state === 
 // spostamento dell'anello verso la tacca bianca: positivo col ritardo, negativo con l'anticipo
 function lagS(){ return ((data.settings.passRit || 0) - (data.settings.passAnt || 0)) / 100; }
 function coRemEff(list, t){ const te = t - lagS() * 1000; const x = list.find(y => y.t > te); return x ? (x.t - te) / 1000 : null; }
+// durata del tratto verso la prossima PA (dalla PA precedente; per la prima PA l'ultimo minuto)
+function coSegEff(list, t){
+  const te = t - lagS() * 1000; const k = list.findIndex(y => y.t > te);
+  if(k < 0) return 0;
+  return k > 0 ? (list[k].t - list[k - 1].t) / 1000 : ALWAYS_MAX;
+}
 const FLASH = 0.2; // secondi in cui la tacca resta gialla dopo il passaggio della barra
 function flashTicks(ringSel, remNext, sincePrev){
   const n = ((data.settings.passAnt || 0) - (data.settings.passRit || 0)) / 100;
@@ -1358,7 +1402,7 @@ goClock();
 })();
 </script>
 <script>
-if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
+if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).catch(() => {}); }); }
 </script>
 </body>
 </html>
